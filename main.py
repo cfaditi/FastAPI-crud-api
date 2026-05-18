@@ -1,46 +1,36 @@
-from fastapi import FastAPI
-
-app = FastAPI()
-
-@app.get("/")
-def read_root():
-    return {"message": "Hello, FastAPI!"}
-
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
+from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from typing import List
+
+import models
+from database import SessionLocal
 
 app = FastAPI()
 
-tasks = []
-
-class Task(BaseModel):
-    id: int
+# Pydantic model
+class PostCreate(BaseModel):
     title: str
-    completed: bool = False
+    body: str
+    userId: int
 
-@app.post("/tasks")
-def create_task(task: Task):
-    tasks.append(task)
-    return task
+# DB dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-@app.get("/tasks")
-def get_tasks():
-    return tasks
+# TEST ROUTE (IMPORTANT)
+@app.get("/")
+def root():
+    return {"message": "API working"}
 
-@app.put("/tasks/{task_id}")
-def update_task(task_id: int, updated_task: Task):
-    for index, task in enumerate(tasks):
-        if task.id == task_id:
-            tasks[index] = updated_task
-            return updated_task
-    return {"error": "Task not found"}
-
-@app.delete("/tasks/{task_id}")
-def delete_task(task_id: int):
-    for task in tasks:
-        if task.id == task_id:
-            tasks.remove(task)
-            return {"message": "Deleted"}
-    return {"error": "Task not found"}
-
+# CREATE ROUTE
+@app.post("/posts")
+def create_post(post: PostCreate, db: Session = Depends(get_db)):
+    db_post = models.Post(**post.dict())
+    db.add(db_post)
+    db.commit()
+    db.refresh(db_post)
+    return db_post
