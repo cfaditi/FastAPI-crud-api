@@ -92,7 +92,7 @@ posts
 
 ▶️ How to Run Locally
 1️⃣ Clone the repository
-git clone https://github.com/YOUR_USERNAME/fastapi-crud-api.git
+git clone https://github.com/cfaditi/fastapi-crud-api.git
 cd fastapi-crud-api
 2️⃣ Create virtual environment
 python -m venv testenv
